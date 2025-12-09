@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Button from "./Button";
 import { createBooking, datesOverlap } from "../services/bookingService";
+import { sendBookingEmail } from "../services/emailService";
 
 const phoneRegex = /^[+\d][\d\s\-()]{5,}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,6 +49,16 @@ export default function BookingForm({ selectedRange, bookings = [], onBooked }) 
         email: form.email.trim(),
         existingBookings: bookings,
       });
+
+      // Отправляем уведомление на почту (не блокируем UX).
+      sendBookingEmail({
+        start: selectedRange.start,
+        end: selectedRange.end,
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+      }).catch((err) => console.warn("Email send failed", err));
+
       onBooked?.(created);
       setFeedback({ error: "", success: true, loading: false });
       setForm({ name: "", phone: "", email: "" });
